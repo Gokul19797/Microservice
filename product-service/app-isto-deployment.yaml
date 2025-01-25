@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-service-deployment
+  namespace: default
+  annotations:
+    sidecar.istio.io/rewriteAppHTTPProbers: "true" # Bypass Istio for probes
+spec:
+  selector:
+    matchLabels:
+      app: product-service
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: product-service
+    spec:
+      containers:
+        - name: product-service
+          image: gokulkrishnanm97/product-service-0.0.1:v4
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8083
+          env:
+            - name: DB_HOST
+              value: mysql
+            - name: DB_NAME
+              value: product_service
+            - name: DB_USERNAME
+              value: root
+            - name: DB_PASSWORD
+              value: password
+#          livenessProbe:
+#            httpGet:
+#              path: /actuator/health
+#              port: 8083
+#            initialDelaySeconds: 30
+#            periodSeconds: 15
+#            timeoutSeconds: 3
+#            failureThreshold: 3
+#          readinessProbe:
+#            httpGet:
+#              path: /actuator/health
+#              port: 8083
+#            initialDelaySeconds: 30
+#            periodSeconds: 10
+#            timeoutSeconds: 3
+#            failureThreshold: 3
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-service-svc
+  namespace: default
+spec:
+  selector:
+    app: product-service
+  ports:
+    - protocol: "TCP"
+      port: 8083
+      targetPort: 8083
+  type: ClusterIP
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: product-service
+  namespace: default
+spec:
+  hosts:
+    - product-service-svc
+  http:
+    - route:
+        - destination:
+            host: product-service-svc
+            port:
+              number: 8083
