@@ -1,6 +1,0 @@
-com/example/order/service/utils/OrderStatus.class
-com/example/order/service/model/Order.class
-com/example/order/service/controller/OrderController.class
-com/example/order/service/repository/OrderRepository.class
-com/example/order/service/OrderServiceApplication.class
-com/example/order/service/service/OrderService.class
